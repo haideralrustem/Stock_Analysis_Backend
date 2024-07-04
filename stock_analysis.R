@@ -41,4 +41,9 @@ library(tidytext)
 
 
 
+d1 = read.csv("data/PSA.csv")
+
+
+
+
 

@@ -45,3 +45,11 @@ po/*~
 rsconnect/
 
 data/
+
+venv
+env
+virtual_env
+virtual_venv
+
+.idea
+*cache*

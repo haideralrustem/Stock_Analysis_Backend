@@ -1,0 +1,74 @@
+
+
+
+11/28/2014
+
+
+
+
+9/8/2014
+
+9/8/2013
+
+
+
+11/11/2013 - 12/15/2014
+
+
+
+A) What to Avoid ? 
+
+
+
+
+-> 5 year should not be a drop (end point > start point in the period):
+	-> 5  year (go by percentile as well... to endure stable pattern; point should be in the middle 40th-60th percentile ?)
+
+
+
+-> 1 year must not be decreasing, but the increase % should be low:
+
+
+-> MA 52 must be uppity (or not down)
+
+
+-> Monitor Magintitude of Change... should be not huge change
+
+
+-> monitor huge spikes --> avoid recent spikes :
+	-> MAX and MIN should not differ by huge amount (Range)
+	-> MA(52) is on upward (for a period of a month minimum)
+	-> MA(50) > MA(200)
+
+
+# MA 52 approaching MA 200
+
+
+
+
+
+Paramters:
+MA 30
+MA 50
+MA 200
+
+>  % Change 1 Month ? by how much ? 10-5-1?
+>  % Change 3 month ?
+>  % Change 1 year (must increase)
+
+>  MA 50 how much it differs from MA 200 (percentage?) MA GAP
+
+
+
+
+
+## Calculations:
+
+# sort by date ascending
+# take a point (one day data), then check if it has:
+
+1- previous 199 points before it? (lower than)
+2- previous 50 points before it? (lower than)
+3- If yes, then include in calculations
+
+
