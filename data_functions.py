@@ -78,4 +78,26 @@ def force_convert_to_numeric(dataframe, column):
 
 #__________________________________
 
+def filter_data_last_n_points(data, target_position, number_of_positions_prior):
+  start_position = target_position - number_of_positions_prior
+  subset_data = data.iloc[start_position: target_position + 1]
 
+  return subset_data
+
+#______________________________________
+
+def filter_data_last_50_points(data, target_position):
+
+  start_position = target_position - 49
+  subset_data = data.iloc[start_position: target_position + 1]
+
+
+  return subset_data
+
+#_________________________________
+
+def filter_data_last_100_points(data, target_position):
+  start_position = target_position - 100
+  subset_data = data.iloc[start_position: target_position + 1]
+
+  return subset_data

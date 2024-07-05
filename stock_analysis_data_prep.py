@@ -51,7 +51,11 @@ def prepare_data():
 
   data['Close'] = pd.to_numeric(data['Close'], errors='coerce')
 
-  data = calculations.calculate_MA50(data)
+  data['Date'] = pd.to_datetime(data['Date'])
+
+  data = calculations.calculate_MA50_for_data(data)
+
+
 
   return data
 
