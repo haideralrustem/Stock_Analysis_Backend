@@ -128,12 +128,17 @@ def calculate_MA100_for_data(data):
 
 
 
-def calculate_slope(filtered_data, col_x, col_y):
+def calculate_slope(filtered_data, col_x, col_y, x_is_date=False):
 
   # Filter DataFrame
   # filtered_data = data[(data[col_x] >= start_date) & (data[col_x] <= end_date)]
 
-  slope, intercept, r_value, p_value, std_err = stats.linregress(filtered_data[col_x], filtered_data[col_y])
+  if x_is_date:
+    # Convert 'date' to ordinal (numerical representation)
+    filtered_data[f'{col_x}_ordinal'] = filtered_data[col_x].apply(lambda x: x.toordinal())
+    slope, intercept, r_value, p_value, std_err = stats.linregress(filtered_data[f'{col_x}_ordinal'], filtered_data[col_y])
+  else:
+    slope, intercept, r_value, p_value, std_err = stats.linregress(filtered_data[col_x], filtered_data[col_y])
 
 
   return slope, intercept, r_value, p_value, std_err
@@ -147,10 +152,13 @@ def calculate_slope_date_filter(data, col_x, col_y, start_date_str, end_date_str
   start_date = pd.to_datetime(start_date_str)
   end_date = pd.to_datetime(end_date_str)
 
+  # Convert 'date' to ordinal (numerical representation)
+  data[f'{col_x}_ordinal'] = data[col_x].apply(lambda x: x.toordinal())
+
   # Filter DataFrame
   filtered_data = data[(data[col_x] >= start_date) & (data[col_x] <= end_date)]
 
-  slope, intercept, r_value, p_value, std_err = stats.linregress(filtered_data[col_x], filtered_data[col_y])
+  slope, intercept, r_value, p_value, std_err = stats.linregress(filtered_data[f'{col_x}_ordinal'], filtered_data[col_y])
 
 
   return slope, intercept, r_value, p_value, std_err
@@ -159,7 +167,7 @@ def calculate_slope_date_filter(data, col_x, col_y, start_date_str, end_date_str
 #__________________________________
 
 
-def calculate_slope_MA_50_for_each(data):
+def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30):
 
   #slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
 
@@ -167,25 +175,26 @@ def calculate_slope_MA_50_for_each(data):
 
   all_values = []
 
-  def calculate_slope_MA50(row):
+  def apply_function(row):
 
     row_num = row.name
     closing_value = row['Close']
 
     print(row_num)
 
-    if row_num >= 50:
+    # we need minimum number of days to allow enough data points for N_days_prior. We must start at 49th index, because indexes before that don't ahve MA50 values
+    if row_num >= (49 + N_days_prior):
       # get the previous 49 points
-      number_previous_indexes_since_first_MA50 = row_num - 49
+      number_previous_days_start_point = row_num - N_days_prior
 
       filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
-                                                               number_of_positions_prior=number_previous_indexes_since_first_MA50)
+                                                               number_of_positions_prior=number_previous_days_start_point)
 
       # calculate slope for values of MA50 from all the previous points (starting at 50th point) up to this current one
-      result = calculate_slope(filtered_data=filtered_data, col_x='Date', col_y='MA_50')
+      result = calculate_slope(filtered_data=filtered_data, col_x='Date', col_y='MA_50', x_is_date=True)
 
       slope, intercept, r_value, p_value, std_err = result
-      row['slope_MA_50'] = slope
+      row[f'slope_MA_50_last_{N_days_prior}_days'] = slope
 
 
 
@@ -195,8 +204,14 @@ def calculate_slope_MA_50_for_each(data):
     return row
 
 
-  if num_rows > 50:
-    data = data.apply(calculate_slope_MA50, axis=1, result_type='expand')
+  if num_rows > (50 + N_days_prior):
+    data = data.apply(apply_function, axis=1, result_type='expand')
 
-
+  
   return data
+
+
+#_____________________________________
+
+
+#def get_slope_

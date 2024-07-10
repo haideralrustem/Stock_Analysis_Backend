@@ -55,7 +55,7 @@ def prepare_data():
 
   data = calculations.calculate_MA50_for_data(data)
 
-
+  data = calculations.calculate_slope_MA_50_for_each(data)
 
   return data
 
