@@ -82,27 +82,27 @@ def calculate_MA50_for_data(data):
 
 
 
-def calculate_MA100_for_data(data):
+def calculate_MA200_for_data(data):
   num_rows = data.shape[0]
 
   all_values = []
 
 
-  def calculate_MA100(row):
+  def calculate_MA200(row):
 
     row_num = row.name
     closing_value = row['Close']
 
     print(row_num)
 
-    if row_num >= 99:
+    if row_num >= 199:
 
       # get the previous 99 points
-      previous_99_indexes_start_point = row_num - 99
+      previous_99_indexes_start_point = row_num - 199
 
       # calculate Moving Avg using a subset of values starting at value that is minus 99 points or positions prior
-      Moving_Avg = sum( all_values[previous_99_indexes_start_point: row_num+1])  / 100
-      row['MA_50'] = Moving_Avg
+      Moving_Avg = sum( all_values[previous_99_indexes_start_point: row_num+1])  / 200
+      row['MA_200'] = Moving_Avg
 
 
     # add each closing stock value so we access it later
@@ -114,7 +114,7 @@ def calculate_MA100_for_data(data):
 
 
   if num_rows > 100:
-    data = data.apply(calculate_MA100, axis=1, result_type='expand')
+    data = data.apply(calculate_MA200, axis=1, result_type='expand')
 
 
 
@@ -183,12 +183,12 @@ def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30):
     print(row_num)
 
     # we need minimum number of days to allow enough data points for N_days_prior. We must start at 49th index, because indexes before that don't ahve MA50 values
-    if row_num >= (49 + N_days_prior):
+    if row_num >= (49 + N_days_prior-1):
       # get the previous 49 points
       number_previous_days_start_point = row_num - N_days_prior
 
       filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
-                                                               number_of_positions_prior=number_previous_days_start_point)
+                                                               number_of_positions_prior=N_days_prior-1)
 
       # calculate slope for values of MA50 from all the previous points (starting at 50th point) up to this current one
       result = calculate_slope(filtered_data=filtered_data, col_x='Date', col_y='MA_50', x_is_date=True)
@@ -215,3 +215,41 @@ def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30):
 
 
 #def get_slope_
+
+def calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30):
+  # slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
+
+  num_rows = data.shape[0]
+
+  all_values = []
+
+  def apply_function(row):
+
+    row_num = row.name
+    closing_value = row['Close']
+
+    print(row_num)
+
+    # we need minimum number of days to allow enough data points for N_days_prior. We must start at 49th index, because indexes before that don't ahve MA50 values
+    if row_num >= (199 + N_days_prior - 1):
+      # get the previous 49 points
+      number_previous_days_start_point = row_num - N_days_prior
+
+      filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
+                                                               number_of_positions_prior=N_days_prior - 1)
+
+      # calculate slope for values of MA50 from all the previous points (starting at 50th point) up to this current one
+      result = calculate_slope(filtered_data=filtered_data, col_x='Date', col_y='MA_200', x_is_date=True)
+
+      slope, intercept, r_value, p_value, std_err = result
+      row[f'slope_MA_200_last_{N_days_prior}_days'] = slope
+
+    # add each closing stock value so we access it later
+    all_values.append(closing_value)
+
+    return row
+
+  if num_rows > (200 + N_days_prior):
+    data = data.apply(apply_function, axis=1, result_type='expand')
+
+  return data

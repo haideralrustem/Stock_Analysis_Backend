@@ -54,8 +54,18 @@ def prepare_data():
   data['Date'] = pd.to_datetime(data['Date'])
 
   data = calculations.calculate_MA50_for_data(data)
+  data = calculations.calculate_MA200_for_data(data)
 
-  data = calculations.calculate_slope_MA_50_for_each(data)
+  # calculate MA_50 trending slope in prior month for each point
+  data = calculations.calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30)
+  # calculate MA_50 trending slope in prior 3 months for each point
+  data = calculations.calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=90)
+
+
+  # calculate MA_200 trending slope in prior 1 month for each point
+  data = calculations.calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30)
+  # calculate MA_200 trending slope in prior 3 months for each point
+  data = calculations.calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=90)
 
   return data
 
