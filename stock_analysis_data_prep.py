@@ -67,6 +67,9 @@ def prepare_data():
   # calculate MA_200 trending slope in prior 3 months for each point
   data = calculations.calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=90)
 
+
+
+
   return data
 
 

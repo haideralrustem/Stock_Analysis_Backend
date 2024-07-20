@@ -253,3 +253,115 @@ def calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30):
     data = data.apply(apply_function, axis=1, result_type='expand')
 
   return data
+
+
+#____________________________________________
+
+
+def detect_MA_crossover(data, days_prior_for_detection_window=30):
+
+  num_rows = data.shape[0]
+
+  all_values = []
+
+  def apply_detect_MA_crossover_function(row):
+    row_num = row.name
+    closing_value = row['Close']
+
+    print(row_num)
+
+    # we need minimum number of days to allow enough data points for days_prior_for_detection_window.
+    # We must start at 199th index, because indexes before that don't have MA200 values
+    if row_num >= (199 + days_prior_for_detection_window - 1):
+      # get the previous 49 points
+      number_previous_days_start_point = row_num - days_prior_for_detection_window
+
+      filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
+                                                               number_of_positions_prior=days_prior_for_detection_window - 1)
+
+      # detect if MA50 is higher than MA200 at any point during the days_prior_for_detection_window period
+
+      row['MA_Crossover'] = 0
+
+      # detect points where MA50 changes from
+
+      occurrences_where_MA50_higher_MA200 = []
+      occurrences_where_MA50_lower_MA200 = []
+
+
+      def counter(subset_row):
+
+        position = subset_row.name
+        # get occurrences_where_MA50_higher_MA200
+        if subset_row['MA50'] > subset_row['MA200']:
+          # record
+          occurrences_where_MA50_higher_MA200.append(position)
+
+
+        if subset_row['MA50'] < subset_row['MA200']:
+          occurrences_where_MA50_lower_MA200.append(position)
+
+
+        return
+
+
+      # make decision about how many instances we detect of MA50 > MA200 or MA50 < MA200
+      MA_Crossover = 0
+      tanked_stock = 0
+
+
+
+      last_position_of_MA50_higher_MA200 = -1
+      last_position_of_MA50_lower_MA200 = -1
+
+
+      if len(occurrences_where_MA50_higher_MA200) > 0:
+        # get the highest postion (last position)
+        last_position_of_MA50_higher_MA200 = max(occurrences_where_MA50_higher_MA200)
+
+      else:
+        # stock is tanked
+        MA_Crossover = 0
+        tanked_stock = 1
+
+
+
+      if len(occurrences_where_MA50_lower_MA200) > 0:
+        # get the highest postion (last position)
+        last_position_of_MA50_lower_MA200 = max(occurrences_where_MA50_lower_MA200)
+      else:
+        # there is no crossover happening in that time period, but stock is healthy, since there are no points MA50 lower than MA200
+        MA_Crossover = 0
+        tanked_stock = 0
+        pass
+
+
+
+      if last_position_of_MA50_higher_MA200 != -1 and last_position_of_MA50_lower_MA200 != -1:
+
+        if last_position_of_MA50_higher_MA200 > last_position_of_MA50_lower_MA200:
+          # good case. MA50 was recorded to be higher at a point later than when it was lower
+          MA_Crossover = 1
+
+        if last_position_of_MA50_higher_MA200 < last_position_of_MA50_lower_MA200:
+          MA_Crossover = 0
+          tanked_stock = 1
+
+
+      row['MA_Crossover'] = MA_Crossover
+      row['tanked_stock'] = tanked_stock
+
+
+    return row
+
+
+  if num_rows > (200 + days_prior_for_detection_window):
+    data = data.apply(apply_detect_MA_crossover_function, axis=1, result_type='expand')
+
+
+
+  return data
+
+
+
+
