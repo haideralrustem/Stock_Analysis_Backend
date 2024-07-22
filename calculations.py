@@ -268,7 +268,7 @@ def detect_MA_crossover(data, days_prior_for_detection_window=30):
     row_num = row.name
     closing_value = row['Close']
 
-    print(row_num)
+
 
     # we need minimum number of days to allow enough data points for days_prior_for_detection_window.
     # We must start at 199th index, because indexes before that don't have MA200 values
@@ -289,21 +289,23 @@ def detect_MA_crossover(data, days_prior_for_detection_window=30):
       occurrences_where_MA50_lower_MA200 = []
 
 
-      def counter(subset_row):
+      def count_MA50_MA200_occurrences(subset_row):
 
         position = subset_row.name
         # get occurrences_where_MA50_higher_MA200
-        if subset_row['MA50'] > subset_row['MA200']:
+        if subset_row['MA_50'] > subset_row['MA_200']:
           # record
           occurrences_where_MA50_higher_MA200.append(position)
 
 
-        if subset_row['MA50'] < subset_row['MA200']:
+        if subset_row['MA_50'] < subset_row['MA_200']:
           occurrences_where_MA50_lower_MA200.append(position)
 
 
         return
 
+
+      filtered_data.apply(count_MA50_MA200_occurrences, axis=1, result_type='expand')
 
       # make decision about how many instances we detect of MA50 > MA200 or MA50 < MA200
       MA_Crossover = 0
@@ -363,5 +365,58 @@ def detect_MA_crossover(data, days_prior_for_detection_window=30):
   return data
 
 
+#__________________________________________
 
 
+
+
+
+def calculate_range_diff_for_previous_N_days(data, N_days_prior=30):
+  # slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
+
+  num_rows = data.shape[0]
+
+  all_values = []
+
+  def apply_function(row):
+
+    row_num = row.name
+    closing_value = row['Close']
+
+
+
+    # we need minimum number of days to allow enough data points for N_days_prior. We must start at 49th index, because indexes before that don't ahve MA50 values
+    if row_num >= ( N_days_prior - 1):
+      # get the previous 49 points
+      number_previous_days_start_point = row_num - N_days_prior
+
+      filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num - 1,
+                                                               number_of_positions_prior=N_days_prior - 1)
+
+      average = filtered_data['Close'].mean()
+
+      max_value = filtered_data['Close'].max()
+      min_value = filtered_data['Close'].min()
+
+
+      # Get the indices of the max and min values
+      max_index = filtered_data['Close'].idxmax()
+      min_index = filtered_data['Close'].idxmin()
+
+
+      range_percentage_diff =
+      if max_index > min_index:
+
+
+
+
+
+
+
+
+    return row
+
+  if num_rows > (200 + N_days_prior):
+    data = data.apply(apply_function, axis=1, result_type='expand')
+
+  return data

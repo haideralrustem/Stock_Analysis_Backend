@@ -68,6 +68,7 @@ def prepare_data():
   data = calculations.calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=90)
 
 
+  data = calculations.detect_MA_crossover(data, days_prior_for_detection_window=30)
 
 
   return data
