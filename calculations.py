@@ -124,6 +124,42 @@ def calculate_MA200_for_data(data):
 #___________________________________
 
 
+def calculate_MA50_MA200_diff_for_data(data):
+  num_rows = data.shape[0]
+
+  all_values = []
+
+
+  def calculate_diff(row):
+
+    row_num = row.name
+    closing_value = row['Close']
+
+    print(row_num)
+
+    if row_num >= 199:
+      row['MA_50_MA_200_diff'] = row['MA_50'] - row['MA_200']
+
+    else:
+      row['MA_50_MA_200_diff'] = None
+
+
+
+    return row
+
+
+
+
+  if num_rows >= 200:
+    data = data.apply(calculate_diff, axis=1, result_type='expand')
+
+
+
+  return data
+
+
+
+#___________________________________
 
 
 
@@ -371,7 +407,7 @@ def detect_MA_crossover(data, days_prior_for_detection_window=30):
 
 
 
-def calculate_range_diff_for_previous_N_days(data, N_days_prior=30):
+def calculate_range_diff_for_previous_N_days(data, N_days_prior=7, custom_column_name=""):
   # slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
 
   num_rows = data.shape[0]
@@ -385,13 +421,13 @@ def calculate_range_diff_for_previous_N_days(data, N_days_prior=30):
 
 
 
-    # we need minimum number of days to allow enough data points for N_days_prior. We must start at 49th index, because indexes before that don't ahve MA50 values
-    if row_num >= ( N_days_prior - 1):
-      # get the previous 49 points
+    # we need minimum number of days to allow enough data points for N_days_prior.
+    if row_num >= ( N_days_prior ):
+
       number_previous_days_start_point = row_num - N_days_prior
 
-      filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num - 1,
-                                                               number_of_positions_prior=N_days_prior - 1)
+      filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
+                                                               number_of_positions_prior=N_days_prior )
 
       average = filtered_data['Close'].mean()
 
@@ -404,19 +440,59 @@ def calculate_range_diff_for_previous_N_days(data, N_days_prior=30):
       min_index = filtered_data['Close'].idxmin()
 
 
-      range_percentage_diff =
-      if max_index > min_index:
+      range_diff_percentage = 0
+
+      if max_index > min_index:  # huge increase in the past N days, so positive diff
+        range_diff_percentage = (max_value - min_value) / min_value
+
+
+      if max_index < min_index:  # huge decrease in the past N days, so negative diff
+        range_diff_percentage = (min_value - max_value) / max_value
 
 
 
-
-
+      row[f"range_diff_percentage_past_{N_days_prior}_days"] = range_diff_percentage
 
 
 
     return row
 
-  if num_rows > (200 + N_days_prior):
+  if num_rows > (N_days_prior):
     data = data.apply(apply_function, axis=1, result_type='expand')
 
   return data
+
+#________________________________________________
+
+
+
+def calculate_MA50_MA200_gap_in_percent(data):
+  # slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
+
+  num_rows = data.shape[0]
+
+  all_values = []
+
+  def apply_function(row):
+
+    row_num = row.name
+    closing_value = row['Close']
+
+    row['MA50_MA200_gap_in_percent'] = None
+
+    # we need minimum number of days to allow enough data points for N_days_prior.
+    if row_num >= ( 199  ):
+      row['MA50_MA200_gap_in_percent'] = row['MA_50_MA_200_diff'] / row['MA_200']
+
+
+    return row
+
+
+
+  if num_rows > (200):
+    data = data.apply(apply_function, axis=1, result_type='expand')
+
+  return data
+
+#________________
+
