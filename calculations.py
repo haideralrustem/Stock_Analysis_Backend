@@ -494,5 +494,136 @@ def calculate_MA50_MA200_gap_in_percent(data):
 
   return data
 
-#________________
+#___________________________________________
 
+def percentile_rank(data_series, value):
+  return (data_series < value).sum() / len(data_series) * 100
+
+
+def calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=30):
+  #
+  num_rows = data.shape[0]
+
+  all_values = []
+
+  def apply_function(row):
+
+    row_num = row.name
+    closing_value = row['Close']
+
+    # we need minimum number of days to allow enough data points for N_days_prior.
+    if row_num >= ( N_days_prior ):
+
+      number_previous_days_start_point = row_num - N_days_prior
+
+      filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
+                                                               number_of_positions_prior=N_days_prior)
+
+      average = filtered_data['Close'].mean()
+
+      max_value = filtered_data['Close'].max()
+      min_value = filtered_data['Close'].min()
+      standard_dev = filtered_data['Close'].std()
+
+      point_percentile_rank = percentile_rank(data_series=filtered_data['Close'], value=row['Close'])
+
+      row[f"standard_dev_past_{N_days_prior}_days"] = standard_dev
+
+      row[f"point_percentile_rank_past_{N_days_prior}_days"] = point_percentile_rank
+
+
+    return row
+
+  if num_rows > (N_days_prior):
+    data = data.apply(apply_function, axis=1, result_type='expand')
+
+  return data
+
+#_______________________________
+
+
+def calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=30, custom_column_name=""):
+  num_rows = data.shape[0]
+
+  all_values = []
+
+  if not custom_column_name:
+    custom_column_name = f'percentage_change_in_past_{N_days_prior}_days'
+
+  def apply_function(row):
+
+    row_num = row.name
+    closing_value = row['Close']
+
+    row[custom_column_name] = None
+
+    # we need minimum number of days to allow enough data points for N_days_prior.
+    if row_num >= (N_days_prior):
+      number_previous_days_start_point = row_num - N_days_prior
+
+      filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
+                                                               number_of_positions_prior=N_days_prior)
+
+
+      beginning_period_value = filtered_data.iloc[0]["Close"]
+      end_period_value = filtered_data.iloc[len(filtered_data) - 1]["Close"]
+
+      percentage_change_in_period = ( (end_period_value - beginning_period_value) / beginning_period_value ) * 100
+
+      row[custom_column_name] = percentage_change_in_period
+
+
+    return row
+
+
+
+  if num_rows > (N_days_prior):
+    data = data.apply(apply_function, axis=1, result_type='expand')
+
+  return data
+
+
+#_____________________________________________________________
+
+
+def calculate_status_next_day_outcome(data):
+  num_rows = data.shape[0]
+
+  all_values = []
+
+
+
+  def apply_function(row):
+
+    row_num = row.name
+    closing_value = row['Close']
+
+    row["status_next_day"] = None
+
+
+    # ensure that we have a 'next day' or 'following day' to measure if stock value increased next day or not
+    if row_num + 1 < len(data):
+      # filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num + 1, number_of_positions_prior=1)
+
+
+      current_closing_value = row['Close']
+      next_day_closing_value = data.iloc[row_num + 1]['Close']
+
+      status = None
+
+      if next_day_closing_value > current_closing_value:
+        status = 1
+      elif next_day_closing_value <= current_closing_value:
+        status = 0
+
+
+      row['status_next_day'] = status
+
+    return row
+
+
+
+
+  data = data.apply(apply_function, axis=1, result_type='expand')
+
+  return data

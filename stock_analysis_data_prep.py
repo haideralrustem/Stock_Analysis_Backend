@@ -77,6 +77,19 @@ def prepare_data():
 
   data = calculations.calculate_MA50_MA200_gap_in_percent(data)
 
+
+  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=30)
+  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=60)
+  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=90)
+
+  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=30)
+  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=60)
+  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=90)
+  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=200)
+  # data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=5*360, custom_column_name=)
+
+  data = calculations.calculate_status_next_day_outcome(data)
+
   return data
 
 
