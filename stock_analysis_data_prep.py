@@ -3,6 +3,11 @@ import os
 import pandas as pd
 import datetime
 
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+from sklearn.metrics import classification_report
 
 import data_functions
 import calculations
@@ -41,13 +46,13 @@ def read_csv_all_encodings(file_path, dtype=str, keep_default_na=False):
 
 
 
-def prepare_data():
+def prepare_data(data):
 
   # for file in os.listdir(data_folder):
   #   if "copy" not in file.lower() or "lock" not in file.lower():
   #     print(file)
 
-  data = read_csv_all_encodings(file_path=os.path.join(data_folder, "PSA.csv"))
+  #data = read_csv_all_encodings(file_path=os.path.join(data_folder, "PSA.csv"))
 
   data['Close'] = pd.to_numeric(data['Close'], errors='coerce')
 
@@ -90,12 +95,100 @@ def prepare_data():
 
   data = calculations.calculate_status_next_day_outcome(data)
 
+
+
+
   return data
 
 
+#__________________________________________
 
 
+def select_rows(data):
+
+
+
+  # keep rows from 288 and row before last (which has no outcome variable available). This is done to ensure we have values available for each variable in the analysis
+
+  selected_data = data.iloc[288: -2].reset_index(drop=True)
+
+  #x = data.drop(columns=['status_next_day'])
+
+
+  return selected_data
+
+
+#___________________________________
+
+def combine_data_files():
+
+  list_of_dataframes = []
+  combined_data = pd.DataFrame()
+
+  for file in os.listdir(f"./data/"):
+
+    if file.endswith("csv") and "copy" not in file.lower():
+
+      data =  read_csv_all_encodings(file_path=os.path.join(data_folder, file))
+      data = prepare_data(data)
+      data = select_rows(data)
+      list_of_dataframes.append(data)
+
+
+  result = pd.concat(list_of_dataframes, ignore_index=True)
+  combined_data = result
+
+  combined_data.to_csv(os.path.join(data_folder, 'combined_data', 'all_data.csv'), index=False)
+
+  return combined_data
+
+
+#_____________________________________
+
+
+def analyze_all_data():
+
+  all_data_df = pd.read_csv(os.path.join(data_folder, 'combined_data', 'all_data.csv'), index_col=False )
+
+  all_data_df= all_data_df.drop(columns=['Close', 'Date', 'Adj Close', 'High', 'Low'])
+
+  X = all_data_df.drop(columns=['status_next_day'])
+
+  y = all_data_df[['status_next_day']]
+
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+  # instantiate the model (using the default parameters)
+  logreg_model = LogisticRegression(random_state=16)
+
+  # fit the model with data
+  logreg_model.fit(X_train, y_train)
+
+  y_pred = logreg_model.predict(X_test)
+
+  cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+
+  score = logreg_model.score(X_test, y_test)
+
+
+  print(score)
+
+  print(cnf_matrix)
+
+  print(logreg_model.coef_, logreg_model.intercept_)
+
+  target_names = ['no_increase', 'increased']
+  print(classification_report(y_test, y_pred, target_names=target_names))
+
+  return
+
+
+#___________________________________________
 
 if __name__ == "__main__":
-  prepare_data()
+  #stage_data_for_ananlysis()
+
+  #combine_data_files()
+
+  analyze_all_data()
   pass

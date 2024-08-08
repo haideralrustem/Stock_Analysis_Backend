@@ -524,10 +524,11 @@ def calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior
       max_value = filtered_data['Close'].max()
       min_value = filtered_data['Close'].min()
       standard_dev = filtered_data['Close'].std()
+      relative_standard_dev = standard_dev / average
 
       point_percentile_rank = percentile_rank(data_series=filtered_data['Close'], value=row['Close'])
 
-      row[f"standard_dev_past_{N_days_prior}_days"] = standard_dev
+      row[f"relative_standard_dev_past_{N_days_prior}_days"] = relative_standard_dev
 
       row[f"point_percentile_rank_past_{N_days_prior}_days"] = point_percentile_rank
 
