@@ -304,6 +304,6 @@ if __name__ == "__main__":
 
   grid_search(model)
   # analyze_all_data(model)
-
+  #{'C': 10, 'gamma': 0.01}
 
 
