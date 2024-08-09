@@ -234,7 +234,7 @@ def analyze_all_data(model):
 
 
   if model == 'SVC':
-    clf = svm.SVC(kernel='linear')  # Linear Kernel
+    clf = svm.SVC(kernel='linear', C=10)  # Linear Kernel
     # Train the model using the training sets
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
@@ -254,13 +254,17 @@ def grid_search(model):
 
   standared_scaler = StandardScaler()
   # X = standared_scaler.fit_transform(X)
-  power_transformer = PowerTransformer()
-  X = power_transformer.fit_transform(X)
 
-  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
+
+
 
 
   if model == 'LogisticRegression':
+
+    power_transformer = PowerTransformer()
+    X = power_transformer.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
+
     param_grid_lr = {
       'max_iter': [20, 50, 100, 200, 500, 1000],
       'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
@@ -276,6 +280,7 @@ def grid_search(model):
 
 
   if model == 'SVC':
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
     Cs = [0.001, 0.01, 0.1, 1, 10]
     gammas = [0.001, 0.01, 0.1, 1]
     param_grid = {'C': Cs, 'gamma': gammas}
