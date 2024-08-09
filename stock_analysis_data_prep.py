@@ -10,7 +10,13 @@ from sklearn import metrics
 from sklearn.metrics import classification_report
 from tabulate import tabulate
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import PowerTransformer
+
 from sklearn.model_selection import GridSearchCV
+from sklearn import svm
+
+
+from sklearn.utils.validation import column_or_1d
 
 import statsmodels.api as sm
 
@@ -160,69 +166,126 @@ def prepare_splits():
 
   return all_data_df, X, y
 
-
+#________________________________
 def analyze_all_data(model):
 
 
 
   all_data_df, X, y = prepare_splits()
 
+  y = y.values.ravel()
+
+  # standared_scaler = StandardScaler()
+  # X = standared_scaler.fit_transform(X)
+
+  power_transformer = PowerTransformer()
+  X = power_transformer.fit_transform(X)
 
 
-  standared_scaler = StandardScaler()
-  X = standared_scaler.fit_transform(X)
-
-  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
 
   # instantiate the model (using the default parameters)
-  logreg_model = LogisticRegression(random_state=16)
-
-  # fit the model with data
-  result = logreg_model.fit(X_train, y_train)
-
-  y_pred = logreg_model.predict(X_test)
-
-  cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
-
-  score = logreg_model.score(X_test, y_test)
+  #logreg_model = LogisticRegression(random_state=1234)
 
 
-  print(score)
+  if model == 'LogisticRegression':
+    logreg_model = LogisticRegression(class_weight='balanced', max_iter=50, random_state=1234,
+                   solver='saga')
 
-  print(cnf_matrix)
+    # fit the model with data
+    result = logreg_model.fit(X_train, y_train)
 
-  print(logreg_model.coef_, logreg_model.intercept_)
+    y_pred = logreg_model.predict(X_test)
 
-  target_names = ['no_increase', 'increased']
-  print(classification_report(y_test, y_pred, target_names=target_names))
+    cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
 
-
-
-
-  coef_dict = {}
-  feature_names = []
-  for name in logreg_model.feature_names_in_:
-    feature_names.append(name)
-
-  c = 0
-  for value in logreg_model.coef_[0]:
-    coef_dict[feature_names[c]] = value
-
-    c += 1
+    score = logreg_model.score(X_test, y_test)
 
 
-  # logreg_model.feature_names_in_
+    print(score)
 
-  for k,v in coef_dict.items():
-    print(f"{k}  =>  {v}")
-  # print(tabulate(coef_df, headers='keys', tablefmt='psql'))
+    print(cnf_matrix)
+
+    print(logreg_model.coef_, logreg_model.intercept_)
+
+    target_names = ['no_increase', 'increased']
+    print(classification_report(y_test, y_pred, target_names=target_names))
+
+    coef_dict = {}
+    feature_names = []
+    for name in logreg_model.feature_names_in_:
+      feature_names.append(name)
+
+    c = 0
+    for value in logreg_model.coef_[0]:
+      coef_dict[feature_names[c]] = value
+
+      c += 1
+
+
+    # logreg_model.feature_names_in_
+
+    for k,v in coef_dict.items():
+      print(f"{k}  =>  {v}")
+    # print(tabulate(coef_df, headers='keys', tablefmt='psql'))
+
+
+  #_______________________________
+
+
+  if model == 'SVC':
+    clf = svm.SVC(kernel='linear')  # Linear Kernel
+    # Train the model using the training sets
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+    print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+    print("Precision:", metrics.precision_score(y_test, y_pred))
+    print("Recall:", metrics.recall_score(y_test, y_pred))
 
   return
 
 #_____________________________________________
 
 
-def grid_search():
+def grid_search(model):
+  all_data_df, X, y = prepare_splits()
+
+  y = y.values.ravel()
+
+  standared_scaler = StandardScaler()
+  # X = standared_scaler.fit_transform(X)
+  power_transformer = PowerTransformer()
+  X = power_transformer.fit_transform(X)
+
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
+
+
+  if model == 'LogisticRegression':
+    param_grid_lr = {
+      'max_iter': [20, 50, 100, 200, 500, 1000],
+      'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
+      'class_weight': ['balanced']
+    }
+
+    logModel_grid = GridSearchCV(estimator=LogisticRegression(random_state=1234), param_grid=param_grid_lr, verbose=1,
+                                 cv=10, n_jobs=-1)
+
+    logModel_grid.fit(X_train, y_train)
+    print(logModel_grid.best_estimator_)
+
+
+
+  if model == 'SVC':
+    Cs = [0.001, 0.01, 0.1, 1, 10]
+    gammas = [0.001, 0.01, 0.1, 1]
+    param_grid = {'C': Cs, 'gamma': gammas}
+    grid_search = GridSearchCV(svm.SVC(kernel='rbf'), param_grid,  verbose=100)
+    grid_search.fit(X, y)
+    result = grid_search.best_params_
+
+    print(result)
+
+
   pass
 #___________________________________________
 
@@ -230,6 +293,12 @@ if __name__ == "__main__":
   #stage_data_for_ananlysis()
 
   #combine_data_files()
-  model = 'logistic_reg'
-  analyze_all_data(model)
+  #grid_search()
+  model = 'LogisticRegression'
+  model= 'SVC'
+
+  grid_search(model)
+  # analyze_all_data(model)
+
+
   pass
