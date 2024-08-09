@@ -8,6 +8,11 @@ from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.metrics import classification_report
+from tabulate import tabulate
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GridSearchCV
+
+import statsmodels.api as sm
 
 import data_functions
 import calculations
@@ -145,16 +150,27 @@ def combine_data_files():
 
 #_____________________________________
 
+def prepare_splits():
+  all_data_df = pd.read_csv(os.path.join(data_folder, 'combined_data', 'all_data.csv'), index_col=False)
 
-def analyze_all_data():
-
-  all_data_df = pd.read_csv(os.path.join(data_folder, 'combined_data', 'all_data.csv'), index_col=False )
-
-  all_data_df= all_data_df.drop(columns=['Close', 'Date', 'Adj Close', 'High', 'Low'])
-
+  all_data_df = all_data_df.drop(columns=['Close', 'Date', 'Adj Close', 'High', 'Low'])
   X = all_data_df.drop(columns=['status_next_day'])
-
   y = all_data_df[['status_next_day']]
+
+
+  return all_data_df, X, y
+
+
+def analyze_all_data(model):
+
+
+
+  all_data_df, X, y = prepare_splits()
+
+
+
+  standared_scaler = StandardScaler()
+  X = standared_scaler.fit_transform(X)
 
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -162,7 +178,7 @@ def analyze_all_data():
   logreg_model = LogisticRegression(random_state=16)
 
   # fit the model with data
-  logreg_model.fit(X_train, y_train)
+  result = logreg_model.fit(X_train, y_train)
 
   y_pred = logreg_model.predict(X_test)
 
@@ -180,15 +196,40 @@ def analyze_all_data():
   target_names = ['no_increase', 'increased']
   print(classification_report(y_test, y_pred, target_names=target_names))
 
+
+
+
+  coef_dict = {}
+  feature_names = []
+  for name in logreg_model.feature_names_in_:
+    feature_names.append(name)
+
+  c = 0
+  for value in logreg_model.coef_[0]:
+    coef_dict[feature_names[c]] = value
+
+    c += 1
+
+
+  # logreg_model.feature_names_in_
+
+  for k,v in coef_dict.items():
+    print(f"{k}  =>  {v}")
+  # print(tabulate(coef_df, headers='keys', tablefmt='psql'))
+
   return
 
+#_____________________________________________
 
+
+def grid_search():
+  pass
 #___________________________________________
 
 if __name__ == "__main__":
   #stage_data_for_ananlysis()
 
   #combine_data_files()
-
-  analyze_all_data()
+  model = 'logistic_reg'
+  analyze_all_data(model)
   pass
