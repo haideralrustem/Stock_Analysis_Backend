@@ -84,6 +84,16 @@ def filter_data_last_n_points(data, target_position, number_of_positions_prior):
 
   return subset_data
 
+
+#___________________________________
+
+
+def filter_data_future_n_points(data, current_position, number_of_positions_ahead):
+  start_position = current_position
+  end_position = current_position + number_of_positions_ahead
+  subset_data = data.iloc[start_position: end_position ]
+
+  return subset_data
 #______________________________________
 
 def filter_data_last_50_points(data, target_position):

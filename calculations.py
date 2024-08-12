@@ -51,7 +51,7 @@ def calculate_MA50_for_data(data):
     row_num = row.name
     closing_value = row['Close']
 
-    print(row_num)
+    
 
     if row_num >= 49:
 
@@ -93,7 +93,7 @@ def calculate_MA200_for_data(data):
     row_num = row.name
     closing_value = row['Close']
 
-    print(row_num)
+    
 
     if row_num >= 199:
 
@@ -135,7 +135,7 @@ def calculate_MA50_MA200_diff_for_data(data):
     row_num = row.name
     closing_value = row['Close']
 
-    print(row_num)
+    
 
     if row_num >= 199:
       row['MA_50_MA_200_diff'] = row['MA_50'] - row['MA_200']
@@ -216,7 +216,7 @@ def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30):
     row_num = row.name
     closing_value = row['Close']
 
-    print(row_num)
+    
 
     # we need minimum number of days to allow enough data points for N_days_prior. We must start at 49th index, because indexes before that don't ahve MA50 values
     if row_num >= (49 + N_days_prior-1):
@@ -264,7 +264,7 @@ def calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30):
     row_num = row.name
     closing_value = row['Close']
 
-    print(row_num)
+    
 
     # we need minimum number of days to allow enough data points for N_days_prior. We must start at 49th index, because indexes before that don't ahve MA50 values
     if row_num >= (199 + N_days_prior - 1):
@@ -599,7 +599,7 @@ def calculate_status_next_day_outcome(data):
     row_num = row.name
     closing_value = row['Close']
 
-    row["status_next_day"] = None
+    row["status_next_day"] = 0
 
 
     # ensure that we have a 'next day' or 'following day' to measure if stock value increased next day or not
@@ -628,3 +628,60 @@ def calculate_status_next_day_outcome(data):
   data = data.apply(apply_function, axis=1, result_type='expand')
 
   return data
+
+
+#_________________________________
+
+
+def calculate_status_next_N_days_outcome(data, N_days=7, custom_column_name=''):
+  num_rows = data.shape[0]
+
+  all_values = []
+
+  if not custom_column_name:
+    custom_column_name = f'status_increase_in_next_{N_days}_days'
+
+  def apply_function(row):
+    row_num = row.name
+    closing_value = row['Close']
+
+    row[custom_column_name] = 0
+
+    # we need minimum number of days to allow enough data points for N_days_prior.
+    if row_num + N_days < len(data):
+
+      filtered_data = data_functions.filter_data_future_n_points(data, current_position=row_num, number_of_positions_ahead=N_days)
+
+      beginning_period_value = filtered_data.iloc[0]["Close"]
+      # end_period_value = filtered_data.iloc[len(filtered_data) - 1]["Close"]
+
+      filtered_data_without_current_point = filtered_data.iloc[1:]
+      max_value = filtered_data_without_current_point['Close'].max()
+
+
+
+      higher_value_detected_after_N_days = 0
+
+      if max_value > beginning_period_value:
+        higher_value_detected_after_N_days = 1
+
+      else:
+        higher_value_detected_after_N_days = 0
+
+
+      row[custom_column_name] = higher_value_detected_after_N_days
+
+
+
+    return row
+
+
+
+
+
+  data = data.apply(apply_function, axis=1, result_type='expand')
+
+  return data
+
+
+
