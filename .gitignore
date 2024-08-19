@@ -53,3 +53,5 @@ virtual_venv
 
 .idea
 *cache*
+
+.DS_*ore

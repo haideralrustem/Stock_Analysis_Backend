@@ -118,6 +118,7 @@ def prepare_data_outcomes(data):
   return data
 
 #____________________________________________
+
 def prepare_data(data):
 
   # for file in os.listdir(data_folder):
@@ -172,6 +173,9 @@ def prepare_data(data):
 
 
   return data
+
+
+
 
 #__________________________________________
 
@@ -578,9 +582,9 @@ if __name__ == "__main__":
   # outcome = 'status_next_day'
   outcome = 'status_increase_in_next_7_days'
 
-  grid_search(model, outcome=outcome)
+  # grid_search(model, outcome=outcome)
 
-  # ml_model = analyze_all_data(model, outcome=outcome)
+  ml_model = analyze_all_data(model, outcome=outcome)
   # save_classifier(classfier=ml_model, name=f"{model}_{outcome}")
 
   classifier = load_classifier(f'{model}_{outcome}.pkl')
