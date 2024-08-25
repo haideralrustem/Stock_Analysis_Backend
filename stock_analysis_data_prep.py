@@ -63,7 +63,9 @@ def read_csv_all_encodings(file_path, dtype=str, keep_default_na=False):
 
 #_____________________________________________
 
-def prepare_data_features(data):
+def prepare_data_features(data, row_indexes_to_calculate=None):
+
+  
   data['Close'] = pd.to_numeric(data['Close'], errors='coerce')
 
   data['Date'] = pd.to_datetime(data['Date'])
@@ -307,6 +309,36 @@ def prepare_splits(full_file_path, outcome='status_next_day'):
 
   return all_data_df, X, y
 
+
+
+
+#_____________________________________
+
+def preprocess_data_for_single_prediction(data):
+  processed_data = prepare_data_features(data)
+  processed_data = select_rows(processed_data, outcome, outcome_unavailable=True)
+
+  processed_data_X = processed_data.drop(columns=['status_next_day', 'status_increase_in_next_7_days', 'status_increase_in_next_14_days'])
+
+  processed_data_X = data_cleanup(processed_data_X)
+  power_transformer = PowerTransformer()
+  processed_data_X = power_transformer.fit_transform(processed_data_X)
+  return processed_data_X
+
+#__________________________
+
+
+
+def perform_calcuations_for_select_data_rows(data, row_indexes_to_calculate):
+  # data should contain new and old data rows.
+  # row_indexes_to_calculate should indicate the new rows
+
+
+
+  #
+  return
+
+
 #________________________________
 def analyze_all_data(model, outcome=''):
 
@@ -518,18 +550,7 @@ def preditct_testing_data(classifier, outcome=''):
 #__________________________________
 
 
-def preprocess_data_for_single_prediction(data):
-  processed_data = prepare_data_features(data)
-  processed_data = select_rows(processed_data, outcome, outcome_unavailable=True)
 
-  processed_data_X = processed_data.drop(columns=['status_next_day', 'status_increase_in_next_7_days', 'status_increase_in_next_14_days'])
-
-  processed_data_X = data_cleanup(processed_data_X)
-  power_transformer = PowerTransformer()
-  processed_data_X = power_transformer.fit_transform(processed_data_X)
-  return processed_data_X
-
-#_____________________________________
 
 def preditct_single_data_point(data, classifier, outcome=''):
 
@@ -558,6 +579,26 @@ def preditct_single_data_point(data, classifier, outcome=''):
   return
 
 
+#__________________________________________
+
+
+
+def main_runner():
+  ml_model = analyze_all_data(model, outcome=outcome)
+  # save_classifier(classfier=ml_model, name=f"{model}_{outcome}")
+
+  classifier = load_classifier(f'{model}_{outcome}.pkl')
+  # preditct_testing_data(classifier, outcome=outcome)
+
+  data_source_file_path = os.path.join(data_folder, "testing_data_sets", "samples", "WELL_2024_08_12.csv")
+
+  all_data = read_csv_all_encodings(file_path=data_source_file_path)
+
+  for i in range(-7, 0):
+    data = all_data.iloc[:i]
+    print()
+    preditct_single_data_point(data, classifier, outcome=outcome)
+
 #___________________________________________
 
 if __name__ == "__main__":
@@ -584,23 +625,14 @@ if __name__ == "__main__":
 
   # grid_search(model, outcome=outcome)
 
-  ml_model = analyze_all_data(model, outcome=outcome)
-  # save_classifier(classfier=ml_model, name=f"{model}_{outcome}")
-
-  classifier = load_classifier(f'{model}_{outcome}.pkl')
-  # preditct_testing_data(classifier, outcome=outcome)
-
-  data_source_file_path = os.path.join(data_folder, "testing_data_sets", "samples", "WELL_2024_08_12.csv")
-
-  all_data = read_csv_all_encodings(file_path=data_source_file_path)
 
 
-  for i in range(-7, 0):
-    data = all_data.iloc[:i]
-    print()
-    preditct_single_data_point(data, classifier, outcome=outcome)
 
-  #{'C': 10, 'gamma': 0.01}
+
+
+
+
+#{'C': 10, 'gamma': 0.01}
 
 
 # {'C': 100, 'gamma': 0.1}
