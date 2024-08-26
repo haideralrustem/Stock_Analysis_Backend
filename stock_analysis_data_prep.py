@@ -65,41 +65,41 @@ def read_csv_all_encodings(file_path, dtype=str, keep_default_na=False):
 
 def prepare_data_features(data, row_indexes_to_calculate=None):
 
-  
+
   data['Close'] = pd.to_numeric(data['Close'], errors='coerce')
 
   data['Date'] = pd.to_datetime(data['Date'])
 
-  data = calculations.calculate_MA50_for_data(data)
-  data = calculations.calculate_MA200_for_data(data)
+  data = calculations.calculate_MA50_for_data(data, row_indexes_to_calculate=row_indexes_to_calculate)
+  data = calculations.calculate_MA200_for_data(data, row_indexes_to_calculate=row_indexes_to_calculate)
 
-  data = calculations.calculate_MA50_MA200_diff_for_data(data)
+  data = calculations.calculate_MA50_MA200_diff_for_data(data, row_indexes_to_calculate=row_indexes_to_calculate)
 
   # calculate MA_50 trending slope in prior month for each point
-  data = calculations.calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30)
+  data = calculations.calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30, row_indexes_to_calculate=row_indexes_to_calculate)
   # calculate MA_50 trending slope in prior 3 months for each point
-  data = calculations.calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=90)
+  data = calculations.calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=90, row_indexes_to_calculate=row_indexes_to_calculate)
 
   # calculate MA_200 trending slope in prior 1 month for each point
-  data = calculations.calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30)
+  data = calculations.calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30, row_indexes_to_calculate=row_indexes_to_calculate)
   # calculate MA_200 trending slope in prior 3 months for each point
-  data = calculations.calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=90)
+  data = calculations.calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=90, row_indexes_to_calculate=row_indexes_to_calculate)
 
-  data = calculations.detect_MA_crossover(data, days_prior_for_detection_window=30)
+  data = calculations.detect_MA_crossover(data, days_prior_for_detection_window=30, row_indexes_to_calculate=row_indexes_to_calculate)
 
-  data = calculations.calculate_range_diff_for_previous_N_days(data, N_days_prior=7)
-  data = calculations.calculate_range_diff_for_previous_N_days(data, N_days_prior=30)
+  data = calculations.calculate_range_diff_for_previous_N_days(data, N_days_prior=7, row_indexes_to_calculate=row_indexes_to_calculate)
+  data = calculations.calculate_range_diff_for_previous_N_days(data, N_days_prior=30, row_indexes_to_calculate=row_indexes_to_calculate)
 
-  data = calculations.calculate_MA50_MA200_gap_in_percent(data)
+  data = calculations.calculate_MA50_MA200_gap_in_percent(data, row_indexes_to_calculate=row_indexes_to_calculate)
 
-  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=30)
-  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=60)
-  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=90)
+  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=30, row_indexes_to_calculate=row_indexes_to_calculate)
+  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=60, row_indexes_to_calculate=row_indexes_to_calculate)
+  data = calculations.calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=90, row_indexes_to_calculate=row_indexes_to_calculate)
 
-  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=30)
-  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=60)
-  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=90)
-  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=200)
+  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=30, row_indexes_to_calculate=row_indexes_to_calculate)
+  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=60, row_indexes_to_calculate=row_indexes_to_calculate)
+  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=90, row_indexes_to_calculate=row_indexes_to_calculate)
+  data = calculations.calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=200, row_indexes_to_calculate=row_indexes_to_calculate)
 
   data['status_next_day'] = np.nan
 

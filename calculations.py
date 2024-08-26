@@ -40,7 +40,7 @@ def calculate_MACD(data):
 #__________________________________
 
 
-def calculate_MA50_for_data(data, single_data_row_number=None):
+def calculate_MA50_for_data(data, row_indexes_to_calculate=None):
   num_rows = data.shape[0]
 
   all_values = []
@@ -57,9 +57,11 @@ def calculate_MA50_for_data(data, single_data_row_number=None):
       # get the previous 49 points
       previous_49_indexes_start_point = row_num - 49
 
-      if single_data_row_number:
+      if row_indexes_to_calculate:
         # restrict calculation to include only desired row number
-        if single_data_row_number == row_num:
+
+
+        if row_num in row_indexes_to_calculate:
           # calculate Moving Avg using a subset of values starting at value that is minus 49 points or positions prior
           Moving_Avg = sum(all_values[previous_49_indexes_start_point: row_num + 1]) / 50
           row['MA_50'] = Moving_Avg
@@ -83,7 +85,7 @@ def calculate_MA50_for_data(data, single_data_row_number=None):
   if num_rows > 50:
     data = data.apply(calculate_MA50, axis=1, result_type='expand')
 
-
+    data['MA_50'] = pd.to_numeric(data['MA_50'])
 
   return data
 
@@ -91,7 +93,7 @@ def calculate_MA50_for_data(data, single_data_row_number=None):
 
 
 
-def calculate_MA200_for_data(data, single_data_row_number=None):
+def calculate_MA200_for_data(data, row_indexes_to_calculate=None):
   num_rows = data.shape[0]
 
   all_values = []
@@ -107,9 +109,9 @@ def calculate_MA200_for_data(data, single_data_row_number=None):
 
     if row_num >= 199:
 
-      if single_data_row_number:
+      if row_indexes_to_calculate:
         # restrict calculation to include only desired row number
-        if single_data_row_number == row_num:
+        if row_num in row_indexes_to_calculate:
           # calculate Moving Avg using a subset of values starting at value that is minus 99 points or positions prior
           Moving_Avg = sum(all_values[previous_99_indexes_start_point: row_num + 1]) / 200
           row['MA_200'] = Moving_Avg
@@ -131,6 +133,7 @@ def calculate_MA200_for_data(data, single_data_row_number=None):
   if num_rows > 100:
     data = data.apply(calculate_MA200, axis=1, result_type='expand')
 
+    data['MA_200'] = pd.to_numeric(data['MA_200'])
 
 
   return data
@@ -139,7 +142,7 @@ def calculate_MA200_for_data(data, single_data_row_number=None):
 #___________________________________
 
 
-def calculate_MA50_MA200_diff_for_data(data, single_data_row_number=None):
+def calculate_MA50_MA200_diff_for_data(data, row_indexes_to_calculate=None):
   num_rows = data.shape[0]
 
   all_values = []
@@ -153,15 +156,14 @@ def calculate_MA50_MA200_diff_for_data(data, single_data_row_number=None):
 
 
 
-    if single_data_row_number:
+    if row_indexes_to_calculate:
       # restrict calculation to include only desired row number
-      if single_data_row_number == row_num:
+      if  row_num in row_indexes_to_calculate:
 
         if row_num >= 199:
           row['MA_50_MA_200_diff'] = row['MA_50'] - row['MA_200']
 
-        else:
-          row['MA_50_MA_200_diff'] = None
+
 
 
     else:
@@ -180,6 +182,7 @@ def calculate_MA50_MA200_diff_for_data(data, single_data_row_number=None):
   if num_rows >= 200:
     data = data.apply(calculate_diff, axis=1, result_type='expand')
 
+    data['MA_50_MA_200_diff'] = pd.to_numeric(data['MA_50_MA_200_diff'])
 
 
   return data
@@ -195,6 +198,8 @@ def calculate_slope(filtered_data, col_x, col_y, x_is_date=False):
 
   # Filter DataFrame
   # filtered_data = data[(data[col_x] >= start_date) & (data[col_x] <= end_date)]
+
+  filtered_data[col_y] = pd.to_numeric(filtered_data[col_y], errors='coerce')
 
   if x_is_date:
     # Convert 'date' to ordinal (numerical representation)
@@ -230,7 +235,7 @@ def calculate_slope_date_filter(data, col_x, col_y, start_date_str, end_date_str
 #__________________________________
 
 
-def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30, single_data_row_number=None):
+def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30, row_indexes_to_calculate=None):
 
   #slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
 
@@ -247,7 +252,7 @@ def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30, single_data
     if row_num >= (49 + N_days_prior - 1):
 
 
-      if single_data_row_number and single_data_row_number == row:
+      if row_indexes_to_calculate and row_num in row_indexes_to_calculate:
 
         # get the previous 49 points
 
@@ -281,6 +286,8 @@ def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30, single_data
   if num_rows > (50 + N_days_prior):
     data = data.apply(apply_function, axis=1, result_type='expand')
 
+    data[f'slope_MA_50_last_{N_days_prior}_days'] = pd.to_numeric(data[f'slope_MA_50_last_{N_days_prior}_days'])
+
   
   return data
 
@@ -290,7 +297,7 @@ def calculate_slope_MA_50_for_previous_N_days(data, N_days_prior=30, single_data
 
 #def get_slope_
 
-def calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30, single_data_row_number=None):
+def calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30, row_indexes_to_calculate=None):
   # slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
 
   num_rows = data.shape[0]
@@ -307,7 +314,7 @@ def calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30, single_dat
     # we need minimum number of days to allow enough data points for N_days_prior. We must start at 49th index, because indexes before that don't ahve MA50 values
     if row_num >= (199 + N_days_prior - 1):
 
-      if single_data_row_number and single_data_row_number == row:
+      if row_indexes_to_calculate and row_num not in row_indexes_to_calculate:
         # get the previous 49 points
 
         filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
@@ -340,13 +347,15 @@ def calculate_slope_MA_200_for_previous_N_days(data, N_days_prior=30, single_dat
   if num_rows > (200 + N_days_prior):
     data = data.apply(apply_function, axis=1, result_type='expand')
 
+    data[f'slope_MA_200_last_{N_days_prior}_days'] = pd.to_numeric(data[f'slope_MA_200_last_{N_days_prior}_days'])
+
   return data
 
 
 #____________________________________________
 
 
-def detect_MA_crossover(data, days_prior_for_detection_window=30, single_data_row_number=None):
+def detect_MA_crossover(data, days_prior_for_detection_window=30, row_indexes_to_calculate=None):
 
   num_rows = data.shape[0]
 
@@ -357,14 +366,13 @@ def detect_MA_crossover(data, days_prior_for_detection_window=30, single_data_ro
     closing_value = row['Close']
 
 
-
     # we need minimum number of days to allow enough data points for days_prior_for_detection_window.
     # We must start at 199th index, because indexes before that don't have MA200 values
     if row_num >= (199 + days_prior_for_detection_window - 1):
 
 
       # restrict calculation to include only desired row number. skip it otherwise
-      if single_data_row_number and single_data_row_number != row:
+      if row_indexes_to_calculate and row_num not in row_indexes_to_calculate:
         return row
 
 
@@ -452,7 +460,8 @@ def detect_MA_crossover(data, days_prior_for_detection_window=30, single_data_ro
   if num_rows > (200 + days_prior_for_detection_window):
     data = data.apply(apply_detect_MA_crossover_function, axis=1, result_type='expand')
 
-
+    data[f'MA_Crossover'] = pd.to_numeric(data[f'MA_Crossover'])
+    data[f'tanked_stock'] = pd.to_numeric(data[f'tanked_stock'])
 
   return data
 
@@ -463,7 +472,7 @@ def detect_MA_crossover(data, days_prior_for_detection_window=30, single_data_ro
 
 
 
-def calculate_range_diff_for_previous_N_days(data, N_days_prior=7, custom_column_name="", single_data_row_number=None):
+def calculate_range_diff_for_previous_N_days(data, N_days_prior=7, custom_column_name="", row_indexes_to_calculate=None):
   # slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
 
   num_rows = data.shape[0]
@@ -476,12 +485,11 @@ def calculate_range_diff_for_previous_N_days(data, N_days_prior=7, custom_column
     closing_value = row['Close']
 
 
-
     # we need minimum number of days to allow enough data points for N_days_prior.
     if row_num >= ( N_days_prior ):
 
       # restrict calculation to include only desired row number (if specified). skip it otherwise
-      if single_data_row_number and single_data_row_number != row:
+      if row_indexes_to_calculate and row_num not in row_indexes_to_calculate:
         return row
 
 
@@ -518,6 +526,7 @@ def calculate_range_diff_for_previous_N_days(data, N_days_prior=7, custom_column
 
   if num_rows > (N_days_prior):
     data = data.apply(apply_function, axis=1, result_type='expand')
+    data[f"range_diff_percentage_past_{N_days_prior}_days"] = pd.to_numeric(data[f"range_diff_percentage_past_{N_days_prior}_days"])
 
   return data
 
@@ -525,7 +534,7 @@ def calculate_range_diff_for_previous_N_days(data, N_days_prior=7, custom_column
 
 
 
-def calculate_MA50_MA200_gap_in_percent(data, single_data_row_number=None):
+def calculate_MA50_MA200_gap_in_percent(data, row_indexes_to_calculate=None):
   # slope, intercept, r_value, p_value, std_err = calculate_slope(data, col_x='Date', col_y='Close')
 
   num_rows = data.shape[0]
@@ -537,13 +546,13 @@ def calculate_MA50_MA200_gap_in_percent(data, single_data_row_number=None):
     row_num = row.name
     closing_value = row['Close']
 
-    row['MA50_MA200_gap_in_percent'] = None
+    # row['MA50_MA200_gap_in_percent'] = None
 
     # we need minimum number of days to allow enough data points for N_days_prior.
     if row_num >= ( 199  ):
 
       # restrict calculation to include only desired row number (if specified). skip it otherwise
-      if single_data_row_number and single_data_row_number != row:
+      if row_indexes_to_calculate and row_num not in row_indexes_to_calculate:
         return row
 
       row['MA50_MA200_gap_in_percent'] = row['MA_50_MA_200_diff'] / row['MA_200']
@@ -555,6 +564,7 @@ def calculate_MA50_MA200_gap_in_percent(data, single_data_row_number=None):
 
   if num_rows > (200):
     data = data.apply(apply_function, axis=1, result_type='expand')
+    data[f"MA50_MA200_gap_in_percent"] = pd.to_numeric(data[f"MA50_MA200_gap_in_percent"])
 
   return data
 
@@ -564,7 +574,11 @@ def percentile_rank(data_series, value):
   return (data_series < value).sum() / len(data_series) * 100
 
 
-def calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=30, single_data_row_number=None):
+#_________________________________
+
+
+
+def calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior=30, row_indexes_to_calculate=None):
   #
   num_rows = data.shape[0]
 
@@ -578,7 +592,7 @@ def calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior
     if row_num >= ( N_days_prior ):
 
       # restrict calculation to include only desired row number (if specified). skip it otherwise
-      if single_data_row_number and single_data_row_number != row:
+      if row_indexes_to_calculate and row_num not in row_indexes_to_calculate:
         return row
 
       filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
@@ -602,13 +616,14 @@ def calculate_percentile_and_standard_dev_for_previous_N_days(data, N_days_prior
 
   if num_rows > (N_days_prior):
     data = data.apply(apply_function, axis=1, result_type='expand')
+    data[f"point_percentile_rank_past_{N_days_prior}_days"] = pd.to_numeric(data[f"point_percentile_rank_past_{N_days_prior}_days"])
 
   return data
 
 #_______________________________
 
 
-def calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=30, custom_column_name="", single_data_row_number=None):
+def calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=30, custom_column_name="", row_indexes_to_calculate=None):
   num_rows = data.shape[0]
 
 
@@ -620,13 +635,13 @@ def calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=30, cust
     row_num = row.name
     closing_value = row['Close']
 
-    row[custom_column_name] = None
+    # row[custom_column_name] = None
 
     # we need minimum number of days to allow enough data points for N_days_prior.
     if row_num >= (N_days_prior):
 
       # restrict calculation to include only desired row number (if specified). skip it otherwise
-      if single_data_row_number and single_data_row_number != row:
+      if row_indexes_to_calculate and row_num not in row_indexes_to_calculate:
         return row
 
       filtered_data = data_functions.filter_data_last_n_points(data, target_position=row_num,
@@ -647,6 +662,7 @@ def calculate_abs_percent_change_for_previous_N_days(data, N_days_prior=30, cust
 
   if num_rows > (N_days_prior):
     data = data.apply(apply_function, axis=1, result_type='expand')
+    data[custom_column_name] = pd.to_numeric(data[custom_column_name])
 
   return data
 
@@ -693,6 +709,7 @@ def calculate_status_next_day_outcome(data):
 
 
   data = data.apply(apply_function, axis=1, result_type='expand')
+  data['status_next_day'] = pd.to_numeric(data['status_next_day'])
 
   return data
 
@@ -747,6 +764,7 @@ def calculate_status_next_N_days_outcome(data, N_days=7, custom_column_name=''):
 
 
   data = data.apply(apply_function, axis=1, result_type='expand')
+  data[custom_column_name] = pd.to_numeric(data[custom_column_name])
 
   return data
 
