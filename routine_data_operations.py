@@ -25,6 +25,12 @@ import stock_analysis_data_prep as sadp
 
 
 
+def perform_calcuations_for_select_data_rows(data, row_indexes_to_calculate):
+  # data should contain new and old data rows.
+  # row_indexes_to_calculate should indicate the new rows
+
+  #
+  return
 
 #__________________________________
 
