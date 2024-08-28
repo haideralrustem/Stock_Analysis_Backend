@@ -1,0 +1,37 @@
+
+
+CREATE TABLE IF NOT EXISTS stocks (`Internal_Number` INT NOT NULL AUTO_INCREMENT PRIMARY KEY);
+ALTER TABLE stocks ADD COLUMN   `ticker` VARCHAR(200) NULL;
+ALTER TABLE stocks ADD COLUMN `Adj Close` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `Close` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `Open` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `Date` DATETIME NULL;
+ALTER TABLE stocks ADD COLUMN   `High` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `Low` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `Volume` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `MA50_MA200_gap_in_percent` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `MA_200` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `MA_50` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `MA_50_MA_200_diff` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `MA_Crossover` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `point_percentile_rank_past_30_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `point_percentile_rank_past_60_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `point_percentile_rank_past_90_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `range_diff_percentage_past_30_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `range_diff_percentage_past_7_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `relative_standard_dev_past_30_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `relative_standard_dev_past_60_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `relative_standard_dev_past_90_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `slope_MA_200_last_30_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `slope_MA_200_last_90_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `slope_MA_50_last_30_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `slope_MA_50_last_90_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `tanked_stock` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `percentage_change_in_past_30_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `percentage_change_in_past_60_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `percentage_change_in_past_90_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `percentage_change_in_past_200_days` NUMERIC NULL;
+ALTER TABLE stocks ADD COLUMN   `status_next_day` INT NULL;
+ALTER TABLE stocks ADD COLUMN   `status_increase_in_next_7_days` INT NULL;
+ALTER TABLE stocks ADD COLUMN   `status_increase_in_next_14_days` INT NULL;
+

@@ -4,7 +4,21 @@ import pandas as pd
 
 
 
+def parse_credentials():
+  credentials = {}
 
+  with open(f'./credentials.txt', 'r') as file:
+    lines = file.readlines()
+
+    for line in lines:
+      # Split the string on '='
+      key, value = line.split('=')
+      key = key.strip()
+      value = value.strip()
+
+      credentials[key] = value
+
+  return credentials
 
 
 

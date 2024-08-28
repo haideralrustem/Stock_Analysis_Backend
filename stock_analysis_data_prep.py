@@ -519,7 +519,7 @@ def load_classifier(classifier_filename):
 
 #_______________________
 
-def preditct_testing_data(classifier, outcome=''):
+def preditct_testing_data_file(classifier, outcome=''):
   
   all_data_df, X, y = prepare_splits(full_file_path=os.path.join(data_folder, 'testing_data_sets', 'combined_data', 'all_data.csv'), outcome=outcome)
 
