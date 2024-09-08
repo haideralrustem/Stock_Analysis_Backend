@@ -97,6 +97,47 @@ def update_DB():
 
 #-------------------------------
 
+
+def check_if_rows_exist_matching_criteria(tablename, where_statement_conditions='', table_columns_to_show=None):
+    rows_exist = False
+    conn, cursor = connect_to_DB()
+
+    # check if where_statement_conditions is empty (no-specified conditions). In such case, just get all records
+    if str(where_statement_conditions).lower() in ['none', '']:
+        # this syntax in SQL: "WHERE 1" means get all records with no conditions specified
+        where_statement_conditions = "1"
+
+    columns_to_include = ''
+    if table_columns_to_show:
+        columns_to_include = ', '.join(table_columns_to_show)
+    else:
+        columns_to_include = "*"  # include all columns of table in resulting query
+
+    # Define the SQL query
+    query = f"SELECT {columns_to_include} FROM {tablename} WHERE {where_statement_conditions} LIMIT 1;"
+    # print(query)
+    # Execute the SQL query
+    cursor.execute(query)
+
+    column_names = [i[0] for i in cursor.description]
+
+    # Fetch all the records
+    results = cursor.fetchall()
+    if len(results) > 0:
+        rows_exist = True
+
+    records = []
+    # Display the retrieved records
+    for row in results:
+        records.append(row)
+
+    return rows_exist, records
+
+
+# _________________________________________
+
+
+
 def update_Table(tablename, dataframeForUpdate, ID_column_for_update, ignoreNULL=True):
 
     conn, cursor = connect_to_DB()
@@ -215,6 +256,7 @@ def update_Table(tablename, dataframeForUpdate, ID_column_for_update, ignoreNULL
             for column in columns:
                 if str(row[column]).lower().strip() not in ['', 'none', 'nat', 'nan']:
                     values.append(row[column])
+
 
 
 
@@ -735,6 +777,7 @@ def update_Table_with_where_statement(tablename, dataframeForUpdate, where_state
 
 
 #_________________________________________
+
 
 def retrieve_record_from_database(tablename, search_by_column_name, search_value):
 

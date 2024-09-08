@@ -1,3 +1,4 @@
+import re
 
 import pandas as pd
 
@@ -125,3 +126,49 @@ def filter_data_last_100_points(data, target_position):
   subset_data = data.iloc[start_position: target_position + 1]
 
   return subset_data
+
+
+#____________________________________
+
+
+
+def create_data_point_id(data):
+
+
+  def function(row):
+    date_str = str(row['Date'].date())
+    ticker = row['ticker']
+
+    combined_id = f"{ticker}_{date_str}"
+
+    row['data_point_id'] = combined_id
+
+    return row
+
+
+  data = data.apply(function, axis=1, result_type='expand')
+
+  return data
+
+
+
+#___________________________________
+
+
+def add_backticks_to_column_names_with_spaces(data):
+  modified_data = None
+
+  new_column_mapping = {}
+
+  for column in data.columns.to_list():
+
+    if re.search(r'\w\s\w', column):
+      new_column = f"`{column}`"
+      new_column_mapping[column] = new_column
+
+  if new_column_mapping:
+    modified_data = data.rename(columns=new_column_mapping)
+  else:
+    modified_data = data
+
+  return modified_data

@@ -37,7 +37,6 @@ def perform_calcuations_for_select_data_rows(data, row_indexes_to_calculate):
 
 
 
-
 #__________________________________
 
 # find diff
@@ -47,11 +46,15 @@ def find_unprocessed_data_points(table_from_database, table_from_download):
 
   #database_specific_functions
 
+  #calculate date gap
+
+  #
+
   return unprocessed_data_points_indexes
 
 #__________________________________
 
-def partial_data_processing(full_data_table):
+def partial_data_processing(full_data_table, row_indexes_to_calculate=None):
 
   # data_source_file_path = os.path.join(sadp.data_folder, "testing_data_sets", "samples", "WELL_2024_08_12.csv")
   data_source_file_path = os.path.join(sadp.data_folder, "testing_data_sets", "samples", "WELL_2024_08_12_prepared.csv")
@@ -72,6 +75,9 @@ def full_data_processing():
 
 
 
+def main_operation():
+
+  return
 
 
 if __name__ == "__main__":
