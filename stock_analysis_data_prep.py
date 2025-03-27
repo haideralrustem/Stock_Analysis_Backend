@@ -2,6 +2,7 @@
 import os
 import pandas as pd
 import datetime
+import time
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix
@@ -30,9 +31,7 @@ import statsmodels.api as sm
 
 import data_functions
 import calculations
-
-
-
+from database_basic_methods import retrieve_record_from_database
 
 data_folder = os.path.join(os.getcwd(), "data")
 
@@ -227,7 +226,7 @@ def select_rows(data, outcome='', outcome_unavailable=False):
 
 
 #___________________________________
-
+# this function combines multiple 5-year stocks.. used for training the models
 def combine_data_files(data_files_path, output_path, output_file_name):
 
   list_of_dataframes = []
@@ -246,7 +245,7 @@ def combine_data_files(data_files_path, output_path, output_file_name):
   result = pd.concat(list_of_dataframes, ignore_index=True)
   combined_data = result
 
-  combined_data.to_csv(os.path.join(output_path, output_file_name), index=False)
+  combined_data.to_csv( os.path.join(output_path, output_file_name), index=False)
 
   return combined_data
 
@@ -573,11 +572,45 @@ def preditct_single_data_point(data, classifier, outcome=''):
 
 #__________________________________________
 
-
-
-def main_runner():
+def generate_the_model(model, outcome):
+  #  if you need to retrain the model
   ml_model = analyze_all_data(model, outcome=outcome)
-  # save_classifier(classfier=ml_model, name=f"{model}_{outcome}")
+  save_classifier(classfier=ml_model, name=f"{model}_{outcome}")
+
+  return
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def run_predict_single_stock(model, outcome, stock_filename):
+
+  ##### uncomment if you need to retrain the model
+  #generate_the_model(model, outcome)
+
+
+
+  classifier = load_classifier(f'{model}_{outcome}.pkl')
+  # preditct_testing_data(classifier, outcome=outcome)
+
+  data_source_file_path = os.path.join(data_folder, "testing_data_sets", "samples", stock_filename)
+
+  all_data = read_csv_all_encodings(file_path=data_source_file_path)
+
+  for i in range(-7, 0):
+    data = all_data.iloc[:i]
+    print()
+    preditct_single_data_point(data, classifier, outcome=outcome)
+
+  return
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+def main_runner(model, outcome):
+
+  ##### uncomment if you need to retrain the model
+  #generate_the_model(model, outcome)
+
+
 
   classifier = load_classifier(f'{model}_{outcome}.pkl')
   # preditct_testing_data(classifier, outcome=outcome)
@@ -591,31 +624,77 @@ def main_runner():
     print()
     preditct_single_data_point(data, classifier, outcome=outcome)
 
+
 #___________________________________________
 
 if __name__ == "__main__":
+
+  timestamp = datetime.datetime.now().strftime("%m_%d_%Y")
+
   #"WELL_2024_08_01.csv"
   # data = read_csv_all_encodings(file_path=os.path.join(data_folder, "PSA.csv"))
   # prepare_data(data)
 
+  combined_data_folder = (input("Which folder do you want to store the combined data in? (folder name only): ")).strip()
 
-  # combine_data_files(data_files_path=data_folder, output_path=os.path.join(data_folder, 'combined_data'), output_file_name='all_data.csv')
-  #
+  if not combined_data_folder:
+    combined_data_folder = f"combined_data"
+
+  output_file_name = (input("what is the output_file_name? (default is all_data_timestamp.csv) : ")).strip()
+
+  if not output_file_name:
+    output_file_name = f"all_data_{timestamp}.csv"
+  # this function combines multiple 5-year stocks (does this need a renewed data?)
+  combine_data_files(data_files_path=data_folder, output_path=os.path.join(data_folder, combined_data_folder), output_file_name=output_file_name)
+
   # combine_data_files(data_files_path=os.path.join(data_folder, 'testing_data_sets') , output_path=os.path.join(data_folder, 'testing_data_sets', 'combined_data'),
   #                    output_file_name='all_data.csv')
+
+  generate_new_model = (input("Do you want to generate new ML Model?? (y/n)")).strip().lower()
+
+  model_select=''
+  outcome=''
+
+  if generate_new_model and generate_new_model.startswith('y'):
+    model_select = (input("Enter model name?? (LogisticRegression, SVC, DecisionTreeClassifier): ")).strip()
+
+    if model_select:
+      outcome = (input("Waht outcome do you want to measure?? (status_next_day, status_increase_in_next_7_days): ")).strip().lower()
+      if outcome:
+        generate_the_model(model=model_select, outcome=outcome)
+
+
+  # run_prediction should run on your potential 500sp stocks or whatever stocks you retrieve with intention to swing (loop SP500)
+
+  run_prediction = (input("Do you want to run classification prediction now? (y/n) ")).strip().lower()
+
+  if run_prediction and run_prediction.startswith('y'):
+    if (model_select and len(model_select) > 1 and outcome and len(outcome) > 1) == False:
+      model_select = (input("Enter model name?? (LogisticRegression, SVC, DecisionTreeClassifier): ")).strip()
+      outcome = (input("What outcome do you want to measure?? (status_next_day, status_increase_in_next_7_days): ")).strip().lower()
+
+
+    if model_select and outcome:
+      run_predict_single_stock(model=model_select, outcome=outcome, stock_filename="WELL_2024_08_12.csv")
+
+
+
 
 
 
   model = 'LogisticRegression'
-  model= 'SVC'
+  #model= 'SVC'
   # model = 'DecisionTreeClassifier'
-  # grid_search(model, outcome='status_increase_in_next_7_days')
 
 
+
+  # choose the outcome
   # outcome = 'status_next_day'
   outcome = 'status_increase_in_next_7_days'
 
+
   # grid_search(model, outcome=outcome)
+  # grid_search(model, outcome='status_increase_in_next_7_days')
 
 
 
